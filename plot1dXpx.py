@@ -123,7 +123,10 @@ if 'Grid/x_px/'+species in fdata:
     plt.ylim(ylimits)
 
     if args.tikz:
-        tikz_save(str(output_file))
+        if args.hd:
+            tikz_save(str(output_file), dpi=monitor_dpi)
+        else:
+            tikz_save(str(output_file))
     else:
         if args.hd:
             plt.savefig(str(output_file), dpi=monitor_dpi)
