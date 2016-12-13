@@ -38,6 +38,10 @@ parser.add_argument('-f', help="Frame to print to image.",
                     action="store", dest="frame", type=int, required=True)
 args = parser.parse_args()
 
+def find_nearest(array,value):
+    return (np.abs(array-value)).argmin()
+
+
 # expand user is needed here in case we get thrown a '~'
 work_dir = Path.expanduser(Path(args.tdir))
 
@@ -77,15 +81,22 @@ Ec = pScale * wL / qe
 nC = eps0 * me * wL * wL / (qe * qe)
 nScale = nC
 
+xlimits = [0, 50]
+
 # Read all frame data
 fdata = sdf.read(str(frame_file), dict=True)
 
 # Calculate required plot variables
 if 'Grid/x_px/protons_back' in fdata:
     xGrid = fdata['Grid/x_px/protons_back'].data[0] / xScale
+
+    lidx = find_nearest(xGrid, xlimits[0])
+    hidx = find_nearest(xGrid, xlimits[1])
+    xGrid = xGrid[lidx:hidx]
     #dx = (fdata['Grid/x_px/electrons'].data[0][1] - fdata['Grid/x_px/electrons'].data[0][0])
     pGrid = fdata['Grid/x_px/protons_back'].data[1] / pScale
     xpx = np.squeeze(fdata['dist_fn/x_px/protons_back'].data)
+    xpx = np.transpose(xpx[lidx:hidx])
     tStart = np.abs(fdata['Grid/Grid_mid'].data[0][0]) / c
     t = (fdata['Header']['time'] - tStart) / tScale
 
@@ -97,17 +108,15 @@ if 'Grid/x_px/protons_back' in fdata:
     else:
         plt.figure()
 
-    # plt.semilogy(xGrid,fdata['Electric Field/Ex'].data/Ec,
-    # label='$E_x/E_c$', color='#7ECD0C')
     plt.xlabel(r'$x/$' + xUnits)
     plt.ylabel(r'$p_x/$' + pUnits)
     plt.title(r'$t/$' + tUnits + '$\, =\,$' + '%5.1f' % t)
-    plt.pcolor(xGrid[::5], pGrid, np.transpose(xpx[::5]), cmap='plasma',norm=LogNorm())
-    #plt.pcolor(xGrid[0:-1:100], pGrid, np.transpose(xpx[0:-1:100]), vmin=1e0, vmax=1e19, cmap='plasma',norm=LogNorm())
+    plt.pcolor(xGrid, pGrid, xpx, cmap='plasma', vmin=1e15, vmax= 1.5e18, norm=LogNorm())
     plt.colorbar()
 
-    plt.tight_layout()
-    plt.xlim(0, 50)  # NOTE: These parameters are arbitrary.
+
+    #plt.tight_layout()
+    plt.xlim(xlimits)  # NOTE: These parameters are arbitrary.
     plt.ylim(-25, 325)
 
     # Get a string containing all key labels in fdata
