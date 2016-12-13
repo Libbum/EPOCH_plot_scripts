@@ -1,5 +1,8 @@
 '''
-Plots distribution function phase map. Currently hardcoded for electrons to test.
+Plots distribution function phase map. Currently hardcoded values are required for xlimits, ylimits, vlimits and species type.
+The limits are only if you want to plot the same scales for movies. Vlimits are hardcoded in the plot line because if you don't
+want them it's better to just delete them from the system...
+
 Requires directory and frame. Should then run rust's parallel to get stride information.
 
 Example run case:
@@ -9,8 +12,6 @@ Here, we're using a relative path, which is safely handled, and a bash range of 
 ISSUES:
 If you get seg faults, it's due to the sdf reader. I've found that if you compile the python bindings with
 debug flags on, you don't get the faults anymore. Crazy right? Yeah. I don't know either...
-
-#TODO: I'm unsure how we should treat tikz output here. We may need to do the ol' half raster technique...
 '''
 
 import matplotlib as mpl
@@ -24,8 +25,9 @@ from matplotlib2tikz import save as tikz_save
 from pathlib import *
 from matplotlib.colors import LogNorm
 
-# Usier required massagers
+# User required massagers
 xlimits = [-200, 200]
+ylimits = [-80, 40]
 species = 'electrons'
 
 parser = argparse.ArgumentParser(
@@ -44,7 +46,6 @@ args = parser.parse_args()
 
 def find_nearest(array,value):
     return (np.abs(array-value)).argmin()
-
 
 # expand user is needed here in case we get thrown a '~'
 work_dir = Path.expanduser(Path(args.tdir))
@@ -85,8 +86,6 @@ Ec = pScale * wL / qe
 nC = eps0 * me * wL * wL / (qe * qe)
 nScale = nC
 
-
-
 # Read all frame data
 fdata = sdf.read(str(frame_file), dict=True)
 
@@ -119,23 +118,10 @@ if 'Grid/x_px/'+species in fdata:
     plt.pcolormesh(xGrid, pGrid, xpx, vmin=1e14, vmax= 5e19, cmap='plasma', norm=LogNorm()) #vmin=1e15, vmax= 1.5e18, np.transpose(xpx[::100])
     plt.colorbar()
 
-
     #plt.tight_layout()
-    plt.xlim(xlimits)  # NOTE: These parameters are arbitrary.
-    plt.ylim(-80, 40)
+    plt.xlim(xlimits)
+    plt.ylim(ylimits)
 
-    # Get a string containing all key labels in fdata
-    # fdata_keys = " ".join(fdata.keys())
-    #
-    # res = re.findall(r'Derived/Number_Density/[a-z,A-Z,0-9_]+', fdata_keys)
-    # res.sort()
-    # for st in res:
-    #     strLabel = st.replace('Derived/Number_Density/', '')
-    #     plt.semilogy(xGrid, fdata[st].data / nScale,
-    #                  label=r'$n_' + strLabel[0] + '/n_c$')
-    #
-    # plt.legend(loc='upper right')
-    # plt.show()
     if args.tikz:
         tikz_save(str(output_file))
     else:
