@@ -116,7 +116,7 @@ if 'Grid/x_px/'+species in fdata:
     plt.xlabel(r'$x/$' + xUnits)
     plt.ylabel(r'$p_x/$' + pUnits)
     plt.title(r'$t/$' + tUnits + '$\, =\,$' + '%5.1f' % t)
-    plt.pcolor(xGrid, pGrid, xpx, vmin=1e14, vmax= 5e19, cmap='plasma', norm=LogNorm()) #vmin=1e15, vmax= 1.5e18, np.transpose(xpx[::100])
+    plt.pcolormesh(xGrid, pGrid, xpx, vmin=1e14, vmax= 5e19, cmap='plasma', norm=LogNorm()) #vmin=1e15, vmax= 1.5e18, np.transpose(xpx[::100])
     plt.colorbar()
 
 
