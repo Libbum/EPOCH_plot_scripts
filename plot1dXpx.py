@@ -24,6 +24,10 @@ from matplotlib2tikz import save as tikz_save
 from pathlib import *
 from matplotlib.colors import LogNorm
 
+# Usier required massagers
+xlimits = [-200, 200]
+species = 'electrons'
+
 parser = argparse.ArgumentParser(
     description="Print a single laser/plasma interaction frame showing plasma density.")
 parser.add_argument('-hd', help="1080p output", action='store_true',
@@ -53,7 +57,7 @@ frame_file = work_dir.joinpath('{:04}'.format(args.frame) + '.sdf')
 save_ext = '.png'
 if args.tikz:
     save_ext = '.tex'
-output_file = work_dir.joinpath('xpx_' + '{:04}'.format(args.frame) + save_ext)
+output_file = work_dir.joinpath('xpx_' + species + '_{:04}'.format(args.frame) + save_ext)
 
 labmbdaL = 0.0
 with input_file.open(encoding='utf-8') as inputFile:
@@ -81,22 +85,23 @@ Ec = pScale * wL / qe
 nC = eps0 * me * wL * wL / (qe * qe)
 nScale = nC
 
-xlimits = [0, 50]
+
 
 # Read all frame data
 fdata = sdf.read(str(frame_file), dict=True)
 
 # Calculate required plot variables
-if 'Grid/x_px/protons_back' in fdata:
-    xGrid = fdata['Grid/x_px/protons_back'].data[0] / xScale
+if 'Grid/x_px/'+species in fdata:
+    xGrid = fdata['Grid/x_px/'+species].data[0] / xScale
 
     lidx = find_nearest(xGrid, xlimits[0])
     hidx = find_nearest(xGrid, xlimits[1])
     xGrid = xGrid[lidx:hidx]
-    #dx = (fdata['Grid/x_px/electrons'].data[0][1] - fdata['Grid/x_px/electrons'].data[0][0])
-    pGrid = fdata['Grid/x_px/protons_back'].data[1] / pScale
-    xpx = np.squeeze(fdata['dist_fn/x_px/protons_back'].data)
+
+    pGrid = fdata['Grid/x_px/'+species].data[1] / pScale
+    xpx = np.squeeze(fdata['dist_fn/x_px/'+species].data)
     xpx = np.transpose(xpx[lidx:hidx])
+
     tStart = np.abs(fdata['Grid/Grid_mid'].data[0][0]) / c
     t = (fdata['Header']['time'] - tStart) / tScale
 
@@ -111,13 +116,13 @@ if 'Grid/x_px/protons_back' in fdata:
     plt.xlabel(r'$x/$' + xUnits)
     plt.ylabel(r'$p_x/$' + pUnits)
     plt.title(r'$t/$' + tUnits + '$\, =\,$' + '%5.1f' % t)
-    plt.pcolor(xGrid, pGrid, xpx, cmap='plasma', vmin=1e15, vmax= 1.5e18, norm=LogNorm())
+    plt.pcolor(xGrid, pGrid, xpx, vmin=1e14, vmax= 5e19, cmap='plasma', norm=LogNorm()) #vmin=1e15, vmax= 1.5e18, np.transpose(xpx[::100])
     plt.colorbar()
 
 
     #plt.tight_layout()
     plt.xlim(xlimits)  # NOTE: These parameters are arbitrary.
-    plt.ylim(-25, 325)
+    plt.ylim(-80, 40)
 
     # Get a string containing all key labels in fdata
     # fdata_keys = " ".join(fdata.keys())
