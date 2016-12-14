@@ -1,10 +1,10 @@
 '''
-Plots Potential (Φ) for a given frame.
+Plots Potential (Φ) phase map.
 
-Requires directory and frame. Should then run rust's parallel to get stride information.
+Requires directory and will use all frames available to it.
 
 Example run case:
-	parallel python plot1dPhi.py -d ../dptest3 -f ::: {1..15..2}
+	python plot1dPhi.py -d ../dptest3
 Here, we're using a relative path, which is safely handled, and a bash range of 1 to 15 with a stride of 2.
 
 ISSUES:
@@ -23,6 +23,10 @@ from matplotlib2tikz import save as tikz_save
 from pathlib import *
 from matplotlib.colors import LogNorm
 
+# User required massagers
+xlimits = [0, 230] #Time
+ylimits = [-100, 250] #Space TODO: Should have ±200 μm, but we have ±250?
+
 parser = argparse.ArgumentParser(
     description="Print a single laser/plasma interaction frame showing plasma density.")
 parser.add_argument('-hd', help="1080p output", action='store_true',
@@ -33,8 +37,6 @@ parser.add_argument('-v', '--verbose', help="Noisy output",
                     action='store_true', dest='loud', required=False, default=False)
 parser.add_argument('-d', help="Directory pointing to target files.",
                     action="store", dest="tdir", required=False, default='.')
-parser.add_argument('-f', help="Frame to print to image.",
-                    action="store", dest="frame", type=int, required=True)
 args = parser.parse_args()
 
 def find_nearest(array,value):
@@ -42,13 +44,14 @@ def find_nearest(array,value):
 
 # expand user is needed here in case we get thrown a '~'
 work_dir = Path.expanduser(Path(args.tdir))
-frame_file = work_dir.joinpath('{:04}'.format(args.frame) + '.sdf')
+
 input_file = work_dir.joinpath('input.deck')  # Gets current input deck
+frames = np.sort([x for x in work_dir.glob('*.sdf')])
 
 save_ext = '.png'
 if args.tikz:
     save_ext = '.tex'
-output_file = work_dir.joinpath('phi_{:04}'.format(args.frame) + save_ext)
+output_file = work_dir.joinpath('phi' + save_ext)
 
 labmbdaL = 0.0
 with input_file.open(encoding='utf-8') as inputFile:
@@ -76,19 +79,43 @@ Ec = pScale * wL / qe
 nC = eps0 * me * wL * wL / (qe * qe)
 nScale = nC
 
-fdata = sdf.read(str(frame_file), dict=True)
+#Initialise required variables
+phi = []
+xGrid = []
+tGrid = []
 
-xGrid = fdata['Grid/Grid_mid'].data[0] / xScale #xGrid is common.
-tStart = np.abs(fdata['Grid/Grid_mid'].data[0][0]) / c
-t = (fdata['Header']['time'] - tStart) / tScale
+# Read all frame data
+for frame in frames:
+    fdata = sdf.read(str(frame), dict=True)
 
-dx = (fdata['Grid/Grid_mid'].data[0][1]-fdata['Grid/Grid_mid'].data[0][0])
-phi = np.zeros(fdata['Electric Field/Ex'].data.shape[0]) # Create matrix
+    if len(xGrid) == 0:
+        xGrid = fdata['Grid/Grid_mid'].data[0] / xScale #xGrid is common.
 
-for i in range(1,phi.shape[0]):
-    phi[i]=phi[i-1]-dx*fdata['Electric Field/Ex'].data[i-1]/Ec/xScale
+    tStart = np.abs(fdata['Grid/Grid_mid'].data[0][0]) / c
+    tGrid.append((fdata['Header']['time'] - tStart) / tScale)
+
+    dx = (fdata['Grid/Grid_mid'].data[0][1]-fdata['Grid/Grid_mid'].data[0][0])
+    phix = np.zeros(fdata['Electric Field/Ex'].data.shape[0]) # Create matrix
+
+    for i in range(1,phix.shape[0]):
+        phix[i]=phix[i-1]-dx*fdata['Electric Field/Ex'].data[i-1]/Ec/xScale
+
+    #phix = 2*qe*phix/((me*1836.2)*(0.041*c)) - 2*qe*np.max(phix)/((me*1836.2)*(0.041*c)) +1
+    #phix[phix<0] = 0
+    phi.append(phix)
 
 phi = np.array(phi)
+tGrid = np.array(tGrid)
+
+lxidx = find_nearest(tGrid, xlimits[0])
+hxidx = find_nearest(tGrid, xlimits[1]+2)
+tGrid = tGrid[lxidx:hxidx]
+
+lyidx = find_nearest(xGrid, ylimits[0])
+hyidx = find_nearest(xGrid, ylimits[1]+2)
+xGrid = xGrid[lyidx:hyidx]
+
+phi = np.transpose(phi[lxidx:hxidx,lyidx:hyidx])
 
 if args.hd:
     monitor_dpi = 96  # NOTE: This is for Jnana, may be different for Brahman.
@@ -100,12 +127,15 @@ else:
 
 plt.ylabel(r'$x/$' + xUnits)
 plt.xlabel(r'$t/$' + tUnits)
-plt.title('t/'+tUnits+' = ' +'%.3g'%t)
-plt.plot(xGrid, phi)
+
+plt.pcolormesh(tGrid, xGrid, phi, cmap='viridis')
+#plt.pcolormesh(xGrid, pGrid, xpx, vmin=1e14, vmax= 5e19, cmap='plasma', norm=LogNorm())
+cbar = plt.colorbar()
+cbar.set_label(r'$\Phi$')
 
 #plt.tight_layout()
-plt.xlim(-100, 100)
-plt.ylim(0, 1.5)
+plt.xlim(xlimits)
+plt.ylim(ylimits)
 
 if args.tikz:
     if args.hd:
