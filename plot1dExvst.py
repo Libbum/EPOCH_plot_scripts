@@ -24,8 +24,8 @@ from pathlib import *
 from matplotlib.colors import LogNorm
 
 # User required massagers
-xlimits = [0, 200] #Time
-ylimits = [-30, 30] #Space TODO: Should have ±200 μm, but we have ±250? -100, 250
+xlimits = [0, 230] #Time
+ylimits = [-50, 50] #Space TODO: Should have ±200 μm, but we have ±250? -100, 250
 
 parser = argparse.ArgumentParser(
     description="Print a single laser/plasma interaction frame showing plasma density.")
@@ -119,7 +119,7 @@ else:
 plt.ylabel(r'$x/$' + xUnits)
 plt.xlabel(r'$t/$' + tUnits)
 
-plt.pcolormesh(tGrid, xGrid, Ex, vmin=-5e11, vmax=5e11, cmap='RdYlGn')
+plt.pcolormesh(tGrid, xGrid, Ex, vmin=-5e11, vmax=5e11, cmap='RdYlGn') #, vmin=-5e11, vmax=5e11
 #plt.pcolormesh(xGrid, pGrid, xpx, vmin=1e14, vmax= 5e19, cmap='plasma', norm=LogNorm())
 cbar = plt.colorbar()
 cbar.set_label(r'$E_x$ (V/m)')

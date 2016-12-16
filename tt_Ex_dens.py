@@ -1,10 +1,10 @@
 '''
-Plots Potential (Φ) for a given frame.
+Plots Electric Field and proton density for a given frame.
 
 Requires directory and frame. Should then run rust's parallel to get stride information.
 
 Example run case:
-	parallel python plot1dPhi.py -d ../dptest3 -f ::: {1..15..2}
+	parallel python plot1dEx.py -d ../dptest3 -f ::: {1..15..2}
 Here, we're using a relative path, which is safely handled, and a bash range of 1 to 15 with a stride of 2.
 
 ISSUES:
@@ -48,7 +48,7 @@ input_file = work_dir.joinpath('input.deck')  # Gets current input deck
 save_ext = '.png'
 if args.tikz:
     save_ext = '.tex'
-output_file = work_dir.joinpath('phi_{:04}'.format(args.frame) + save_ext)
+output_file = work_dir.joinpath('Ex_dens_{:04}'.format(args.frame) + save_ext)
 
 labmbdaL = 0.0
 with input_file.open(encoding='utf-8') as inputFile:
@@ -78,17 +78,16 @@ nScale = nC
 
 fdata = sdf.read(str(frame_file), dict=True)
 
-xGrid = fdata['Grid/Grid_mid'].data[0] / xScale #xGrid is common.
+xGrid = fdata['Grid/Grid_mid'].data[0] / 1e-6 #to μm
 tStart = np.abs(fdata['Grid/Grid_mid'].data[0][0]) / c
 t = (fdata['Header']['time'] - tStart) / tScale
 
 dx = (fdata['Grid/Grid_mid'].data[0][1]-fdata['Grid/Grid_mid'].data[0][0])
-phi = np.zeros(fdata['Electric Field/Ex'].data.shape[0]) # Create matrix
-
-for i in range(1,phi.shape[0]):
-    phi[i]=phi[i-1]-dx*fdata['Electric Field/Ex'].data[i-1]/Ec/xScale
-
-phi = np.array(phi)
+Ex = np.array(fdata['Electric Field/Ex'].data)
+densPB = fdata['Derived/Number_Density/protons_back'].data
+densI = fdata['Derived/Number_Density/ions'].data
+#densPF = fdata['Derived/Number_Density/protons_front'].data
+#densE = fdata['Derived/Number_Density/electrons'].data
 
 if args.hd:
     monitor_dpi = 96  # NOTE: This is for Jnana, may be different for Brahman.
@@ -98,14 +97,32 @@ if args.hd:
 else:
     plt.figure()
 
-plt.ylabel(r'$x/$' + xUnits)
-plt.xlabel(r'$t/$' + tUnits)
+ax1 = plt.gca()
+ax2 = ax1.twinx()
+
+plt.xlabel(r'$x$ ($\mathrm{\mu}$m)')
+ax1.set_ylabel(r'$E_x$ (V/m)')
 plt.title('t/'+tUnits+' = ' +'%.3g'%t)
-plt.plot(xGrid, phi)
+#Bounds of box
+ax1.plot((3, 3), (-5e12, 1e13), 'k--')
+ax1.plot((6, 6), (-5e12, 1e13), 'k--')
+x = np.linspace(0,3,10)
+y = (np.exp(2*x)/400)*1e13
+expl, = ax1.plot(x, y, '0.75') #Return as a tuple not a list
+expl.set_linestyle('--')
+
+ax1.plot(xGrid, Ex, '#e41a1c')
+
+#ax2.plot(xGrid, densPF, '#984ea3')
+#ax2.plot(xGrid, densE, '#984ea3')
+ax2.plot(xGrid, densPB, '#377eb8')
+ax2.plot(xGrid, densI, '#4daf4a')
+#ff7f00
 
 #plt.tight_layout()
-plt.xlim(-100, 100)
-plt.ylim(-1.5, 2.5)
+plt.xlim(-5, 15)
+ax1.set_ylim(-5e12, 1e13)
+ax2.set_ylim(1e5, 3e27)
 
 if args.tikz:
     if args.hd:

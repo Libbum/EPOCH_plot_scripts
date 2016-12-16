@@ -27,14 +27,14 @@ from matplotlib.colors import LogNorm
 
 # User required massagers
 
-#species = 'electrons'
-#xlimits = [-200, 200]
-#ylimits = [-80, 40]
+species = 'electrons'
+xlimits = [-200, 200]
+ylimits = [-80, 40]
 ## vmin=1e14, vmax= 5e19
 
-species = 'protons_back'
-xlimits = [0, 50]
-ylimits = [-50, 350]
+#species = 'protons_back'
+#xlimits = [0, 50]
+#ylimits = [-50, 350]
 ## vmin=1e15, vmax= 1.5e18
 
 parser = argparse.ArgumentParser(
@@ -122,7 +122,7 @@ if 'Grid/x_px/'+species in fdata:
     plt.xlabel(r'$x/$' + xUnits)
     plt.ylabel(r'$p_x/$' + pUnits)
     plt.title(r'$t/$' + tUnits + '$\, =\,$' + '%5.1f' % t)
-    plt.pcolormesh(xGrid, pGrid, xpx, vmin=1e15, vmax= 1.5e18, cmap='plasma', norm=LogNorm()) #vmin=1e15, vmax= 1.5e18, np.transpose(xpx[::100])
+    plt.pcolormesh(xGrid, pGrid, xpx, cmap='plasma', norm=LogNorm()) #vmin=1e15, vmax= 1.5e18, np.transpose(xpx[::100])  , vmin=1e14, vmax= 5e19
     plt.colorbar()
 
     #plt.tight_layout()
