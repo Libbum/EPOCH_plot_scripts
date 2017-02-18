@@ -6,7 +6,7 @@ want them it's better to just delete them from the system...
 Requires directory and frame. Should then run rust's parallel to get stride information.
 
 Example run case:
-	parallel python plot1dXpx.py -d ../dptest3 -f ::: {1..15..2}
+parallel python plot1dXpx.py -d ../dptest3 -f ::: {1..15..2}
 Here, we're using a relative path, which is safely handled, and a bash range of 1 to 15 with a stride of 2.
 
 ISSUES:
@@ -14,7 +14,12 @@ If you get seg faults, it's due to the sdf reader. I've found that if you compil
 debug flags on, you don't get the faults anymore. Crazy right? Yeah. I don't know either...
 '''
 
+import os
 import matplotlib as mpl
+#Don't invoke X if we're running remotely.
+if os.environ.get('DISPLAY','') == '':
+    mpl.use('Agg')
+
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse

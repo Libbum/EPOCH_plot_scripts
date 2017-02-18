@@ -13,7 +13,12 @@ debug flags on, you don't get the faults anymore. Crazy right? Yeah. I don't kno
 
 '''
 
+import os
 import matplotlib as mpl
+#Don't invoke X if we're running remotely.
+if os.environ.get('DISPLAY','') == '':
+    mpl.use('Agg')
+
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
