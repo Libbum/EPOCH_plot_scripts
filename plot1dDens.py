@@ -53,7 +53,7 @@ frame_file = work_dir.joinpath('{:04}'.format(args.frame) + '.sdf')
 save_ext = '.png'
 if args.tikz:
     save_ext = '.tex'
-output_file = work_dir.joinpath('dens_' + '{:04}'.format(args.frame) + save_ext)
+output_file = Path.cwd().joinpath('dens_' + '{:04}'.format(args.frame) + save_ext)
 
 labmbdaL = 0.0
 with input_file.open(encoding='utf-8') as inputFile:
