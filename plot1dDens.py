@@ -65,8 +65,8 @@ with input_file.open(encoding='utf-8') as inputFile:
     lambdaL = np.float(res.group(1)) * 1e-6
 
 # Set up constants. NOTE: Constants directly from Evangelos' file
-xScale = lambdaL  # 1e-6
-xUnits = '$\lambda_L$'
+xScale = 1e-6
+xUnits = '$(\mu m)$'
 pScale = 2.73092e-22  # me*c
 pUnits = '$(m_e c)$'
 qe = 1.60218e-19
@@ -100,7 +100,7 @@ else:
 
 # plt.semilogy(xGrid,fdata['Electric Field/Ex'].data/Ec,
 # label='$E_x/E_c$', color='#7ECD0C')
-plt.xlabel(r'$x/$' + xUnits)
+plt.xlabel(r'$x $' + xUnits)
 plt.title(r'$t/$' + tUnits + '$\, =\,$' + '%5.1f' % t)
 
 # Find vector potential

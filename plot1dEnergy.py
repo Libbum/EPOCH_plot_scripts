@@ -79,8 +79,8 @@ with input_file.open(encoding='utf-8') as inputFile:
     a0 = np.float(res.group(1))
 
 # Set up scales and units
-xScale = lambdaL  # 1e-6
-xUnits = '$\lambda_L$'
+xScale = 1e-6
+xUnits = '$(\mu m)$'
 pScale = 2.73092e-22  # me*c
 pUnits = '$(m_e c)$'
 aScale = pScale / qe

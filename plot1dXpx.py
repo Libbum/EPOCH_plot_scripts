@@ -82,8 +82,8 @@ with input_file.open(encoding='utf-8') as inputFile:
     lambdaL = np.float(res.group(1)) * 1e-6
 
 # Set up constants. NOTE: Constants directly from Evangelos' file
-xScale = lambdaL  # 1e-6
-xUnits = '$\lambda_L$'
+xScale = 1e-6
+xUnits = '$(\mu m)$'
 pScale = 2.73092e-22  # me*c
 pUnits = '$(m_e c)$'
 qe = 1.60218e-19
@@ -124,7 +124,7 @@ if 'Grid/x_px/'+species in fdata:
     else:
         plt.figure()
 
-    plt.xlabel(r'$x/$' + xUnits)
+    plt.xlabel(r'$x $' + xUnits)
     plt.ylabel(r'$p_x/$' + pUnits)
     plt.title(r'$t/$' + tUnits + '$\, =\,$' + '%5.1f' % t)
     plt.pcolormesh(xGrid, pGrid, xpx, cmap='plasma', norm=LogNorm()) #vmin=1e15, vmax= 1.5e18, np.transpose(xpx[::100])  , vmin=1e14, vmax= 5e19
