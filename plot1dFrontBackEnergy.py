@@ -121,7 +121,7 @@ xGrid = fdata['Grid/Grid_mid'].data[0] / xScale
 tStart = np.abs(fdata['Grid/Grid_mid'].data[0][0]) / c
 t = (fdata['Header']['time'] - tStart) / tScale
 
-output_file = work_dir.joinpath(
+output_file = Path.cwd().joinpath(
     'nrg_protons_' + '{:04}'.format(args.frame) + save_ext)
 
 if args.hd:

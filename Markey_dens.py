@@ -30,7 +30,7 @@ work2_dir = Path.expanduser(Path(args.tdir2))
 input_file = work_dir.joinpath('input.deck') #Gets current input deck
 frame_file = work_dir.joinpath('{:04}'.format(args.frame)+'.sdf') #gets file we want to print data from
 frame2_file = work2_dir.joinpath('{:04}'.format(args.frame2)+'.sdf')
-output_file = work_dir.joinpath('markey.png')
+output_file = Path.cwd().joinpath('markey.png')
 
 labmbdaL = 0.0
 with input_file.open(encoding='utf-8') as inputFile:

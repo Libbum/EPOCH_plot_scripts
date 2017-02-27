@@ -48,7 +48,7 @@ input_file = work_dir.joinpath('input.deck')  # Gets current input deck
 save_ext = '.png'
 if args.tikz:
     save_ext = '.tex'
-output_file = work_dir.joinpath('phi_{:04}'.format(args.frame) + save_ext)
+output_file = Path.cwd().joinpath('phi_{:04}'.format(args.frame) + save_ext)
 
 labmbdaL = 0.0
 with input_file.open(encoding='utf-8') as inputFile:

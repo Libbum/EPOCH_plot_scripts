@@ -51,7 +51,7 @@ frames = np.sort([x for x in work_dir.glob('*.sdf')])
 save_ext = '.png'
 if args.tikz:
     save_ext = '.tex'
-output_file = work_dir.joinpath('phi' + save_ext)
+output_file = Path.cwd().joinpath('phi' + save_ext)
 
 labmbdaL = 0.0
 with input_file.open(encoding='utf-8') as inputFile:

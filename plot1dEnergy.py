@@ -116,7 +116,7 @@ for species in re.findall(r'dist_fn/en_cut/([a-z,A-Z,0-9_]+)', fdata_keys):
     d = np.squeeze(fdata['dist_fn/en_cut/' + species].data)
 
     speciesGrid = 'Grid/en_cut/' + species
-    output_file = work_dir.joinpath(
+    output_file = Path.cwd().joinpath(
         'nrg_' + species + '_' + '{:04}'.format(args.frame) + save_ext)
 
     if args.hd:
