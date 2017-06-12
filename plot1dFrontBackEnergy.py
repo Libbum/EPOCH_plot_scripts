@@ -6,7 +6,8 @@ ASSUMPTIONS:
 requires two proton species, named protons_front and protons_back included in the en_cut dist_fn
 
 Example run case:
-	parallel -j 8 python plot1DEnergy.py -d ../dptest3 -f ::: {1..15..2}
+parallel -j 8 python plot1DEnergy.py -d ../dptest3 -f ::: {1..15..2}
+
 Here, we're using a relative path, which is safely handled, and a bash range of 1 to 15 with a stride of 2.
 Forcing the hyperthreads to not be invoked seems to give us optimal coverage on this one.
 
@@ -16,7 +17,11 @@ debug flags on, you don't get the faults anymore. Crazy right? Yeah. I don't kno
 
 '''
 
+import os
 import matplotlib as mpl
+#Don't invoke X if we're running remotely.
+if os.environ.get('DISPLAY','') == '':
+    mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
@@ -88,6 +93,7 @@ with input_file.open(encoding='utf-8') as inputFile:
     # NOTE: This only works if we have the density in terms of n_c
     res = re.search(r'den_init\s*=\s*([0-9.]+)\s*\*\s*den_crit', deck)
     n0 = np.float(res.group(1)) * nc
+    #n0 = 115.2 * nc
 
     res = re.search(r'a0\s+=\s+([0-9.]+)', deck)
     a0 = np.float(res.group(1))
@@ -119,7 +125,9 @@ fdata = sdf.read(str(frame_file), dict=True)
 # Calculate required plot variables
 xGrid = fdata['Grid/Grid_mid'].data[0] / xScale
 tStart = np.abs(fdata['Grid/Grid_mid'].data[0][0]) / c
-t = (fdata['Header']['time'] - tStart) / tScale
+t0 = 8e-14 + tStart #80 fs is 2*40fs which should be laser peak
+t = (fdata['Header']['time']-t0) / tScale
+tcomp = fdata['Header']['time']
 
 output_file = Path.cwd().joinpath(
     'nrg_protons_' + '{:04}'.format(args.frame) + save_ext)
@@ -166,10 +174,10 @@ plt.xlabel('E '+EkUnits)
 plt.ylabel('f(E)  '+ '(arbitrary units)')
 
 #plt.tight_layout()
-plt.ylim(1e9,1e18)
-plt.xlim(0,6)
+plt.ylim(5e8,1e15)
+plt.xlim(0,8)
 
-plt.title('t/'+tUnits+' = ' +'%.3g'%t +',  $a_0=$'+'%.2g'%a0)
+plt.title('t0+'+'%.3g'%t + tUnits +' ('+'%.3g'%tcomp +' s),  $a_0=$'+'%.2g'%a0)
 plt.legend(loc='best')
 
 # plt.show()
